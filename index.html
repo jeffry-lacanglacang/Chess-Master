@@ -52,10 +52,16 @@
             border-radius: 4px;
         }
 
-        /* Responsive Board Sizing for Android Portrait & Desktop */
+        /* Responsive Board Sizing for Android Portrait, Landscape & Desktop */
         .board-wrapper {
-            width: min(94vw, 540px, 60dvh);
+            width: min(94vw, 540px, 58dvh);
             max-width: 100%;
+        }
+
+        @media (orientation: landscape) and (max-height: 540px) {
+            .board-wrapper {
+                width: min(74dvh, 420px);
+            }
         }
 
         @media (min-width: 1024px) {
@@ -73,7 +79,7 @@
             justify-content: center;
             cursor: pointer;
             touch-action: manipulation;
-            transition: background-color 0.12s ease;
+            transition: background-color 0.1s ease;
         }
 
         .piece {
@@ -85,7 +91,7 @@
             z-index: 10;
             pointer-events: none;
             will-change: transform;
-            transition: transform 0.14s cubic-bezier(0.2, 0.8, 0.2, 1);
+            transition: transform 0.12s cubic-bezier(0.2, 0.8, 0.2, 1);
         }
 
         /* Desktop-only hover feedback (prevents sticky hover on Android) */
@@ -152,14 +158,14 @@
     <!-- PAGE 1: SETTINGS PAGE -->
     <div id="settings-page" class="min-h-[100dvh] flex flex-col justify-between p-4 sm:p-8 max-w-4xl mx-auto w-full transition-all duration-300">
         <!-- Header -->
-        <header class="text-center my-4 sm:my-6">
+        <header class="text-center my-3 sm:my-6">
             <div class="inline-flex items-center justify-center space-x-3 mb-2">
                 <i class="fa-solid fa-chess-king text-amber-500 text-3xl sm:text-4xl"></i>
                 <h1 class="text-3xl sm:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-amber-400 to-amber-600 bg-clip-text text-transparent">
                     CHESS MASTER
                 </h1>
             </div>
-            <p class="text-slate-400 text-xs sm:text-base">Configure your game preferences and start playing</p>
+            <p class="text-slate-400 text-xs sm:text-base">Online opening &amp; endgame databases + fast alpha-beta engine</p>
         </header>
 
         <!-- Main Options Form -->
@@ -216,6 +222,21 @@
                 </select>
             </div>
 
+            <!-- Online Chess DB Toggle -->
+            <label for="online-db-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-database text-amber-400 text-xl w-6 text-center"></i>
+                    <div>
+                        <span class="block font-medium text-slate-200 text-sm sm:text-base">Online Move &amp; Endgame DB</span>
+                        <span class="text-xs text-slate-400">Uses Lichess Explorer &amp; Tablebase when online</span>
+                    </div>
+                </div>
+                <div class="relative inline-flex items-center">
+                    <input type="checkbox" id="online-db-toggle" checked onchange="toggleOnlineDb(this.checked)" class="sr-only peer">
+                    <div class="w-12 h-7 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-5 peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:bg-amber-500"></div>
+                </div>
+            </label>
+
             <!-- Sound Toggle -->
             <label for="sound-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
                 <div class="flex items-center space-x-3">
@@ -232,7 +253,7 @@
             </label>
 
             <!-- Flip Board Toggle -->
-            <label for="flip-toggle" class="min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
+            <label for="flip-toggle" class="md:col-span-2 min-h-[64px] flex items-center justify-between p-4 bg-slate-800/60 border border-slate-700/60 rounded-xl cursor-pointer active:bg-slate-800 transition-colors">
                 <div class="flex items-center space-x-3">
                     <i class="fa-solid fa-rotate text-amber-400 text-xl w-6 text-center"></i>
                     <div>
@@ -262,20 +283,21 @@
     <div id="game-page" class="hidden min-h-[100dvh] flex flex-col justify-between items-center bg-slate-950">
         
         <!-- Header Bar -->
-        <header class="w-full bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-2.5 flex items-center justify-between z-20">
-            <button onclick="returnToSettings()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all">
+        <header class="w-full bg-slate-900/95 backdrop-blur border-b border-slate-800 px-3 sm:px-6 py-2.5 flex items-center justify-between z-20 gap-2">
+            <button onclick="returnToSettings()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all shrink-0">
                 <i class="fa-solid fa-gear"></i>
                 <span class="hidden sm:inline">Settings</span>
             </button>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 min-w-0">
                 <div id="game-status-indicator" class="flex items-center space-x-2 bg-slate-800/90 px-3.5 py-1.5 rounded-full border border-slate-700">
-                    <span id="turn-dot" class="w-3 h-3 rounded-full bg-slate-100 inline-block shadow"></span>
-                    <span id="status-text" class="text-xs sm:text-sm font-semibold tracking-wide text-slate-200">White's Turn</span>
+                    <span id="turn-dot" class="w-3 h-3 rounded-full bg-slate-100 inline-block shadow shrink-0"></span>
+                    <span id="status-text" class="text-xs sm:text-sm font-semibold tracking-wide text-slate-200 truncate">White's Turn</span>
                 </div>
+                <span id="ai-source-badge" class="hidden text-[11px] font-medium px-2.5 py-1 rounded-full bg-amber-500/15 text-amber-300 border border-amber-500/30 truncate max-w-[200px]"></span>
             </div>
 
-            <button id="toggle-history-btn" onclick="toggleHistoryTab()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all">
+            <button id="toggle-history-btn" onclick="toggleHistoryTab()" class="min-h-[42px] min-w-[42px] flex items-center justify-center space-x-2 text-slate-300 hover:text-slate-100 bg-slate-800 hover:bg-slate-700 active:scale-95 px-3.5 py-2 rounded-xl text-sm font-medium transition-all shrink-0">
                 <i class="fa-solid fa-list-ol"></i>
                 <span class="hidden sm:inline">History</span>
             </button>
@@ -406,7 +428,8 @@
             theme: 'wood',
             mode: 'ai', // 'ai' or 'pvp'
             aiDifficulty: 'medium', // 'easy', 'medium', 'hard'
-            playerSide: 'w' // 'w' or 'b'
+            playerSide: 'w', // 'w' or 'b'
+            onlineDb: true
         };
 
         let game = null;
@@ -415,11 +438,21 @@
         let pendingPromotion = null;
         let isAiThinking = false;
         let aiMoveTimeout = null;
+        let lastAiSourceNote = '';
 
         // Replay State
         let isReplayMode = false;
         let replayIndex = 0;
         let replayAutoInterval = null;
+
+        // Online DB Caches & Search Engine State
+        const openingDbCache = new Map();
+        const tablebaseDbCache = new Map();
+        const transpositionTable = new Map();
+        const killerMoves = [[null, null], [null, null], [null, null], [null, null], [null, null], [null, null]];
+        let searchNodes = 0;
+        let searchDeadline = 0;
+        let searchAborted = false;
 
         // Piece Vector Graphics
         const pieceSvgs = {
@@ -441,84 +474,84 @@
             }
         };
 
-        // --- PIECE-SQUARE TABLES ---
-        const PIECE_VALUES = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 20000 };
+        // --- PIECE-SQUARE TABLES (0 = Rank 8 top, 7 = Rank 1 bottom) ---
+        const PIECE_VALUES = { p: 100, n: 320, b: 335, r: 500, q: 920, k: 20000 };
 
         const PST_PAWN = [
-            [ 0,  0,  0,  0,  0,  0,  0,  0],
-            [50, 50, 50, 50, 50, 50, 50, 50],
-            [10, 10, 20, 30, 30, 20, 10, 10],
-            [ 5,  5, 10, 25, 25, 10,  5,  5],
-            [ 0,  0,  0, 20, 20,  0,  0,  0],
-            [ 5, -5,-10,  0,  0,-10, -5,  5],
-            [ 5, 10, 10,-20,-20, 10, 10,  5],
-            [ 0,  0,  0,  0,  0,  0,  0,  0]
+            [  0,   0,   0,   0,   0,   0,   0,   0],
+            [ 55,  55,  55,  55,  55,  55,  55,  55],
+            [ 14,  14,  24,  34,  34,  24,  14,  14],
+            [  6,   8,  14,  28,  28,  14,   8,   6],
+            [  0,   2,   6,  22,  22,   6,   2,   0],
+            [  4,  -4, -10,   4,   4, -10,  -4,   4],
+            [  6,  10,  10, -18, -18,  10,  10,   6],
+            [  0,   0,   0,   0,   0,   0,   0,   0]
         ];
 
         const PST_KNIGHT = [
-            [-50,-40,-30,-30,-30,-30,-40,-50],
-            [-40,-20,  0,  0,  0,  0,-20,-40],
-            [-30,  0, 10, 15, 15, 10,  0,-30],
-            [-30,  5, 15, 20, 20, 15,  5,-30],
-            [-30,  0, 15, 20, 20, 15,  0,-30],
-            [-30,  5, 10, 15, 15, 10,  5,-30],
-            [-40,-20,  0,  5,  5,  0,-20,-40],
-            [-50,-40,-30,-30,-30,-30,-40,-50]
+            [-50, -40, -30, -30, -30, -30, -40, -50],
+            [-40, -20,   0,   4,   4,   0, -20, -40],
+            [-30,   4,  12,  18,  18,  12,   4, -30],
+            [-30,   6,  16,  24,  24,  16,   6, -30],
+            [-30,   4,  16,  24,  24,  16,   4, -30],
+            [-30,   6,  12,  18,  18,  12,   6, -30],
+            [-40, -20,   0,   6,   6,   0, -20, -40],
+            [-50, -40, -30, -30, -30, -30, -40, -50]
         ];
 
         const PST_BISHOP = [
-            [-20,-10,-10,-10,-10,-10,-10,-20],
-            [-10,  0,  0,  0,  0,  0,  0,-10],
-            [-10,  0,  5, 10, 10,  5,  0,-10],
-            [-10,  5,  5, 10, 10,  5,  5,-10],
-            [-10,  0, 10, 10, 10, 10,  0,-10],
-            [-10, 10, 10, 10, 10, 10, 10,-10],
-            [-10,  5,  0,  0,  0,  0,  5,-10],
-            [-20,-10,-10,-10,-10,-10,-10,-20]
+            [-20, -10, -10, -10, -10, -10, -10, -20],
+            [-10,   2,   0,   0,   0,   0,   2, -10],
+            [-10,   4,   8,  12,  12,   8,   4, -10],
+            [-10,   6,   8,  12,  12,   8,   6, -10],
+            [-10,   0,  12,  12,  12,  12,   0, -10],
+            [-10,  10,  10,  10,  10,  10,  10, -10],
+            [-10,   6,   0,   0,   0,   0,   6, -10],
+            [-20, -10, -10, -10, -10, -10, -10, -20]
         ];
 
         const PST_ROOK = [
-            [  0,  0,  0,  0,  0,  0,  0,  0],
-            [  5, 10, 10, 10, 10, 10, 10,  5],
-            [ -5,  0,  0,  0,  0,  0,  0, -5],
-            [ -5,  0,  0,  0,  0,  0,  0, -5],
-            [ -5,  0,  0,  0,  0,  0,  0, -5],
-            [ -5,  0,  0,  0,  0,  0,  0, -5],
-            [ -5,  0,  0,  0,  0,  0,  0, -5],
-            [  0,  0,  0,  5,  5,  0,  0,  0]
+            [  0,   0,   2,   6,   6,   2,   0,   0],
+            [  8,  14,  14,  16,  16,  14,  14,   8],
+            [ -4,   0,   0,   0,   0,   0,   0,  -4],
+            [ -4,   0,   0,   0,   0,   0,   0,  -4],
+            [ -4,   0,   0,   0,   0,   0,   0,  -4],
+            [ -4,   0,   0,   0,   0,   0,   0,  -4],
+            [ -4,   0,   0,   0,   0,   0,   0,  -4],
+            [  0,   0,   4,   8,   8,   4,   0,   0]
         ];
 
         const PST_QUEEN = [
-            [-20,-10,-10, -5, -5,-10,-10,-20],
-            [-10,  0,  0,  0,  0,  0,  0,-10],
-            [-10,  0,  5,  5,  5,  5,  0,-10],
-            [ -5,  0,  5,  5,  5,  5,  0, -5],
-            [  0,  0,  5,  5,  5,  5,  0, -5],
-            [-10,  5,  5,  5,  5,  5,  0,-10],
-            [-10,  0,  5,  0,  0,  0,  0,-10],
-            [-20,-10,-10, -5, -5,-10,-10,-20]
+            [-20, -10, -10,  -4,  -4, -10, -10, -20],
+            [-10,   0,   2,   2,   2,   2,   0, -10],
+            [-10,   2,   6,   6,   6,   6,   2, -10],
+            [ -4,   0,   6,   6,   6,   6,   0,  -4],
+            [  0,   0,   6,   6,   6,   6,   0,  -4],
+            [-10,   6,   6,   6,   6,   6,   0, -10],
+            [-10,   0,   6,   0,   0,   0,   0, -10],
+            [-20, -10, -10,  -4,  -4, -10, -10, -20]
         ];
 
         const PST_KING_MID = [
-            [-30,-40,-40,-50,-50,-40,-40,-30],
-            [-30,-40,-40,-50,-50,-40,-40,-30],
-            [-30,-40,-40,-50,-50,-40,-40,-30],
-            [-30,-40,-40,-50,-50,-40,-40,-30],
-            [-20,-30,-30,-40,-40,-30,-30,-20],
-            [-10,-20,-20,-20,-20,-20,-20,-10],
-            [ 20, 20,  0,  0,  0,  0, 20, 20],
-            [ 20, 30, 10,  0,  0, 10, 30, 20]
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-30, -40, -40, -50, -50, -40, -40, -30],
+            [-20, -30, -30, -40, -40, -30, -30, -20],
+            [-10, -20, -20, -20, -20, -20, -20, -10],
+            [ 18,  18,   0,  -4,  -4,   0,  18,  18],
+            [ 22,  32,  12,  -4,  -4,  12,  32,  22]
         ];
 
         const PST_KING_END = [
-            [-50,-40,-30,-20,-20,-30,-40,-50],
-            [-30,-20,-10,  0,  0,-10,-20,-30],
-            [-30,-10, 20, 30, 30, 20,-10,-30],
-            [-30,-10, 30, 40, 40, 30,-10,-30],
-            [-30,-10, 30, 40, 40, 30,-10,-30],
-            [-30,-10, 20, 30, 30, 20,-10,-30],
-            [-30,-30,  0,  0,  0,  0,-30,-30],
-            [-50,-30,-30,-30,-30,-30,-30,-50]
+            [-45, -35, -25, -18, -18, -25, -35, -45],
+            [-25, -15,  -5,   4,   4,  -5, -15, -25],
+            [-25,  -5,  18,  28,  28,  18,  -5, -25],
+            [-25,  -5,  28,  38,  38,  28,  -5, -25],
+            [-25,  -5,  28,  38,  38,  28,  -5, -25],
+            [-25,  -5,  18,  28,  28,  18,  -5, -25],
+            [-25, -20,   0,   4,   4,   0, -20, -25],
+            [-45, -25, -20, -20, -20, -20, -25, -45]
         ];
 
         // --- AUDIO SYNTHESIZER (Mobile-Unlocked Web Audio API) ---
@@ -683,6 +716,10 @@
             board.className = `grid grid-cols-8 grid-rows-8 w-full h-full theme-${theme}`;
         }
 
+        function toggleOnlineDb(enabled) {
+            config.onlineDb = enabled;
+        }
+
         function toggleSound(enabled) {
             config.sound = enabled;
             const icon = document.getElementById('sound-icon');
@@ -705,6 +742,7 @@
             isReplayMode = false;
             replayIndex = 0;
             pendingPromotion = null;
+            lastAiSourceNote = '';
             audio.init();
 
             document.getElementById('game-over-modal').classList.add('hidden');
@@ -1017,7 +1055,7 @@
                 await makeAIMove();
                 isAiThinking = false;
                 updateUI();
-            }, 260);
+            }, 80);
         }
 
         function showPromotionModal(color) {
@@ -1048,246 +1086,497 @@
             modal.classList.remove('hidden');
         }
 
-        // --- UPGRADED AI WITH ONLINE OPENING DATABASE INTEGRATION ---
+        // --- ONLINE CHESS DATABASES (OPENING EXPLORER + SYZYGY TABLEBASE) ---
+        function countPiecesOnBoard() {
+            const board = game.board();
+            let count = 0;
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    if (board[r][c]) count++;
+                }
+            }
+            return count;
+        }
+
+        function uciToMoveObj(uci) {
+            if (!uci || uci.length < 4) return null;
+            return {
+                from: uci.substring(0, 2),
+                to: uci.substring(2, 4),
+                promotion: uci.length > 4 ? uci[4] : undefined
+            };
+        }
+
+        async function fetchJsonWithTimeout(url, timeoutMs) {
+            if (!config.onlineDb || (typeof navigator !== 'undefined' && navigator.onLine === false)) {
+                return null;
+            }
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const res = await fetch(url, { signal: controller.signal });
+                clearTimeout(timer);
+                if (!res.ok) return null;
+                return await res.json();
+            } catch (err) {
+                clearTimeout(timer);
+                return null;
+            }
+        }
+
+        async function queryOnlineOpeningMove(fen, aiColor) {
+            const moveCount = game.history().length;
+            if (moveCount > 22) return null;
+
+            const cacheKey = `${fen}|${aiColor}|${config.aiDifficulty}`;
+            let movesList = openingDbCache.get(fen);
+
+            if (!movesList) {
+                const url = `https://explorer.lichess.ovh/standard?fen=${encodeURIComponent(fen)}&topGames=0&speeds=blitz,rapid,classical&ratings=1600,1800,2000,2200,2500`;
+                const data = await fetchJsonWithTimeout(url, 1200);
+                if (data && Array.isArray(data.moves) && data.moves.length > 0) {
+                    movesList = data.moves.filter(m => {
+                        const total = (m.white || 0) + (m.draws || 0) + (m.black || 0);
+                        return total >= 3;
+                    });
+                    openingDbCache.set(fen, movesList);
+                }
+            }
+
+            if (!movesList || movesList.length === 0) return null;
+
+            const scored = movesList.map(m => {
+                const w = m.white || 0;
+                const d = m.draws || 0;
+                const b = m.black || 0;
+                const total = Math.max(1, w + d + b);
+                const winRate = aiColor === 'w' ? (w + 0.5 * d) / total : (b + 0.5 * d) / total;
+                return { uci: m.uci, total, winRate };
+            });
+
+            if (config.aiDifficulty === 'easy') {
+                const pool = scored.slice(0, Math.min(6, scored.length));
+                return pool[Math.floor(Math.random() * pool.length)].uci;
+            }
+
+            scored.sort((a, b) => (b.winRate * 0.65 + Math.log10(b.total + 1) * 0.12) - (a.winRate * 0.65 + Math.log10(a.total + 1) * 0.12));
+            const topPool = scored.slice(0, config.aiDifficulty === 'hard' ? Math.min(2, scored.length) : Math.min(3, scored.length));
+            return topPool[Math.floor(Math.random() * topPool.length)].uci;
+        }
+
+        async function queryOnlineTablebaseMove(fen) {
+            if (countPiecesOnBoard() > 7) return null;
+
+            let data = tablebaseDbCache.get(fen);
+            if (!data) {
+                const url = `https://tablebase.lichess.ovh/standard?fen=${encodeURIComponent(fen)}`;
+                data = await fetchJsonWithTimeout(url, 1300);
+                if (data && Array.isArray(data.moves) && data.moves.length > 0) {
+                    tablebaseDbCache.set(fen, data);
+                }
+            }
+
+            if (!data || !Array.isArray(data.moves) || data.moves.length === 0) return null;
+
+            // Tablebase move categories from side-to-move perspective:
+            // 'win' / 'cursed-win' (opponent loses), 'draw', 'loss' / 'blessed-loss' (opponent wins)
+            const sorted = [...data.moves].sort((a, b) => {
+                const rank = (cat) => {
+                    if (cat === 'loss' || cat === 'blessed-loss') return 3;
+                    if (cat === 'draw') return 2;
+                    return 1;
+                };
+                const rDiff = rank(b.category) - rank(a.category);
+                if (rDiff !== 0) return rDiff;
+                const dtzA = Math.abs(a.dtz ?? 999);
+                const dtzB = Math.abs(b.dtz ?? 999);
+                return dtzA - dtzB;
+            });
+
+            if (config.aiDifficulty === 'easy') {
+                const fallbackPool = sorted.slice(-Math.min(3, sorted.length));
+                return fallbackPool[Math.floor(Math.random() * fallbackPool.length)].uci;
+            }
+
+            return sorted[0].uci;
+        }
+
+        // --- UPGRADED AI ENGINE (ALPHA-BETA + TRANSPOSITION TABLE + KILLERS + QUIESCENCE) ---
         async function makeAIMove() {
             if (game.game_over()) return;
 
-            // Query Lichess Opening Explorer API with 2.5s timeout so offline/slow Android networks never hang
-            try {
-                const fen = game.fen();
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 2500);
-                const response = await fetch(`https://explorer.lichess.ovh/standard?fen=${encodeURIComponent(fen)}&topGames=0`, {
-                    signal: controller.signal
-                });
-                clearTimeout(timeoutId);
+            const aiColor = game.turn();
+            const fen = game.fen();
+            lastAiSourceNote = '';
 
-                if (response.ok) {
-                    const data = await response.json();
-                    if (data && data.moves && data.moves.length > 0) {
-                        const topMoves = data.moves.slice(0, Math.min(3, data.moves.length));
-                        const chosenOpeningMove = topMoves[Math.floor(Math.random() * topMoves.length)];
-                        if (chosenOpeningMove && chosenOpeningMove.uci) {
-                            const from = chosenOpeningMove.uci.substring(0, 2);
-                            const to = chosenOpeningMove.uci.substring(2, 4);
-                            const promotion = chosenOpeningMove.uci.length > 4 ? chosenOpeningMove.uci[4] : undefined;
-                            const moveResult = game.move({ from, to, promotion });
-                            if (moveResult) {
-                                replayIndex = game.history().length;
-                                if (moveResult.captured) audio.playCapture();
-                                else audio.playMove();
-                                if (game.in_check()) audio.playCheck();
-                                renderBoard();
-                                updateUI();
-                                if (game.game_over()) handleGameOver();
-                                return;
-                            }
-                        }
-                    }
+            // 1. Endgame Tablebase Lookup (<= 7 pieces)
+            const tbUci = await queryOnlineTablebaseMove(fen);
+            if (tbUci) {
+                const tbMove = game.move(uciToMoveObj(tbUci));
+                if (tbMove) {
+                    lastAiSourceNote = 'Tablebase DB';
+                    finalizeAIMove(tbMove);
+                    return;
                 }
-            } catch (e) {
-                // Fallback seamlessly to local minimax engine
             }
 
-            const moves = orderMoves(game.moves({ verbose: true }));
-            if (moves.length === 0) return;
+            // 2. Opening Explorer Lookup (early/mid opening)
+            const openingUci = await queryOnlineOpeningMove(fen, aiColor);
+            if (openingUci) {
+                const opMove = game.move(uciToMoveObj(openingUci));
+                if (opMove) {
+                    lastAiSourceNote = 'Opening DB';
+                    finalizeAIMove(opMove);
+                    return;
+                }
+            }
 
-            const aiColor = game.turn();
-            let chosenMove = null;
+            // 3. Local Search Engine
+            const legalMoves = game.moves({ verbose: true });
+            if (legalMoves.length === 0) return;
 
             if (config.aiDifficulty === 'easy') {
-                if (Math.random() < 0.4) {
-                    chosenMove = moves[0];
-                } else {
-                    chosenMove = moves[Math.floor(Math.random() * moves.length)];
-                }
-            } else {
-                const searchDepth = config.aiDifficulty === 'medium' ? 2 : 3;
-                const useQuiescence = config.aiDifficulty === 'hard';
+                const orderedEasy = orderMoves(legalMoves, 0);
+                const chosenEasy = Math.random() < 0.55
+                    ? orderedEasy[Math.floor(Math.random() * Math.min(3, orderedEasy.length))]
+                    : orderedEasy[Math.floor(Math.random() * orderedEasy.length)];
+                lastAiSourceNote = 'Local Engine';
+                executeMove(chosenEasy);
+                return;
+            }
 
-                let bestScore = -Infinity;
-                let bestMoves = [];
+            const maxDepth = config.aiDifficulty === 'medium' ? 3 : 4;
+            const timeBudgetMs = config.aiDifficulty === 'medium' ? 900 : 1800;
+            const useQuiescence = true;
+            const useNullMove = config.aiDifficulty === 'hard';
 
-                for (let move of moves) {
+            searchNodes = 0;
+            searchAborted = false;
+            searchDeadline = performance.now() + timeBudgetMs;
+
+            let bestMoveOverall = orderMoves(legalMoves, 0)[0];
+            let bestScoreOverall = -Infinity;
+
+            // Iterative Deepening for instant, high-quality moves within budget
+            for (let depth = 1; depth <= maxDepth; depth++) {
+                if (depth > 1 && performance.now() > searchDeadline) break;
+
+                const rootMoves = orderMoves(game.moves({ verbose: true }), 0, bestMoveOverall);
+                let currentBestMove = null;
+                let currentBestScore = -Infinity;
+                let alpha = -Infinity;
+                const beta = Infinity;
+
+                for (let i = 0; i < rootMoves.length; i++) {
+                    const move = rootMoves[i];
                     game.move(move);
-                    let score = minimax(searchDepth - 1, -Infinity, Infinity, false, aiColor, useQuiescence);
-                    if (score > 90000) score += searchDepth;
+                    const score = -negamax(depth - 1, -beta, -alpha, aiColor, useQuiescence, useNullMove, 1);
                     game.undo();
 
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestMoves = [move];
-                    } else if (score === bestScore) {
-                        bestMoves.push(move);
+                    if (searchAborted && depth > 1) break;
+
+                    if (score > currentBestScore) {
+                        currentBestScore = score;
+                        currentBestMove = move;
+                    }
+                    if (score > alpha) {
+                        alpha = score;
                     }
                 }
-                chosenMove = bestMoves[Math.floor(Math.random() * bestMoves.length)];
+
+                if (currentBestMove && (!searchAborted || depth === 1)) {
+                    bestMoveOverall = currentBestMove;
+                    bestScoreOverall = currentBestScore;
+                }
+
+                if (bestScoreOverall > 90000) break;
             }
 
-            if (chosenMove) {
-                executeMove(chosenMove);
-            }
+            lastAiSourceNote = `Engine D${maxDepth} (${(searchNodes / 1000).toFixed(1)}k)`;
+            executeMove(bestMoveOverall);
         }
 
-        function orderMoves(moves) {
-            return moves.sort((a, b) => scoreMoveHeuristic(b) - scoreMoveHeuristic(a));
+        function finalizeAIMove(moveResult) {
+            replayIndex = game.history().length;
+            if (moveResult.captured) audio.playCapture();
+            else audio.playMove();
+            if (game.in_check()) audio.playCheck();
+            renderBoard();
+            updateUI();
+            if (game.game_over()) handleGameOver();
         }
 
-        function scoreMoveHeuristic(move) {
+        function isSameMove(a, b) {
+            if (!a || !b) return false;
+            return a.from === b.from && a.to === b.to && (a.promotion || '') === (b.promotion || '');
+        }
+
+        function orderMoves(moves, ply = 0, ttBestMove = null) {
+            const killers = killerMoves[ply] || [null, null];
+            return [...moves].sort((a, b) => scoreMoveHeuristic(b, ply, ttBestMove, killers) - scoreMoveHeuristic(a, ply, ttBestMove, killers));
+        }
+
+        function scoreMoveHeuristic(move, ply, ttBestMove, killers) {
+            if (ttBestMove && isSameMove(move, ttBestMove)) return 100000;
             let score = 0;
             if (move.captured) {
-                score += 10 * PIECE_VALUES[move.captured] - PIECE_VALUES[move.piece];
+                score += 10000 + (10 * PIECE_VALUES[move.captured] - PIECE_VALUES[move.piece]);
             }
             if (move.promotion) {
-                score += PIECE_VALUES[move.promotion];
+                score += 9000 + PIECE_VALUES[move.promotion];
             }
-            if (move.san.includes('+')) score += 50;
-            if (move.flags.includes('k') || move.flags.includes('q')) score += 40;
+            if (!move.captured && killers) {
+                if (isSameMove(move, killers[0])) score += 4500;
+                else if (isSameMove(move, killers[1])) score += 3500;
+            }
+            if (move.san && move.san.includes('+')) score += 600;
+            if (move.flags && (move.flags.includes('k') || move.flags.includes('q'))) score += 400;
             return score;
         }
 
-        function evaluateBoard(aiColor) {
+        function evaluateSide(board, color, isEndgame) {
+            let score = 0;
+            let bishops = 0;
+            const pawnFiles = [];
+            const passedPawnCandidates = [];
+
+            for (let r = 0; r < 8; r++) {
+                for (let c = 0; c < 8; c++) {
+                    const piece = board[r][c];
+                    if (!piece || piece.color !== color) continue;
+
+                    const tableRow = color === 'w' ? r : 7 - r;
+                    let posBonus = 0;
+
+                    switch (piece.type) {
+                        case 'p':
+                            posBonus = PST_PAWN[tableRow][c];
+                            pawnFiles.push(c);
+                            passedPawnCandidates.push({ r, c });
+                            break;
+                        case 'n':
+                            posBonus = PST_KNIGHT[tableRow][c];
+                            break;
+                        case 'b':
+                            posBonus = PST_BISHOP[tableRow][c];
+                            bishops++;
+                            break;
+                        case 'r':
+                            posBonus = PST_ROOK[tableRow][c];
+                            break;
+                        case 'q':
+                            posBonus = PST_QUEEN[tableRow][c];
+                            break;
+                        case 'k':
+                            posBonus = isEndgame ? PST_KING_END[tableRow][c] : PST_KING_MID[tableRow][c];
+                            break;
+                    }
+
+                    score += PIECE_VALUES[piece.type] + posBonus;
+                }
+            }
+
+            if (bishops >= 2) score += 35;
+
+            // Doubled pawn penalty
+            const fileCounts = new Array(8).fill(0);
+            for (const f of pawnFiles) fileCounts[f]++;
+            for (const count of fileCounts) {
+                if (count > 1) score -= 18 * (count - 1);
+            }
+
+            // Passed pawn bonus
+            const enemyColor = color === 'w' ? 'b' : 'w';
+            for (const p of passedPawnCandidates) {
+                let isPassed = true;
+                if (color === 'w') {
+                    for (let rr = p.r - 1; rr >= 0; rr--) {
+                        for (let cc = Math.max(0, p.c - 1); cc <= Math.min(7, p.c + 1); cc++) {
+                            const occ = board[rr][cc];
+                            if (occ && occ.color === enemyColor && occ.type === 'p') isPassed = false;
+                        }
+                    }
+                    if (isPassed) score += (7 - p.r) * 14;
+                } else {
+                    for (let rr = p.r + 1; rr < 8; rr++) {
+                        for (let cc = Math.max(0, p.c - 1); cc <= Math.min(7, p.c + 1); cc++) {
+                            const occ = board[rr][cc];
+                            if (occ && occ.color === enemyColor && occ.type === 'p') isPassed = false;
+                        }
+                    }
+                    if (isPassed) score += p.r * 14;
+                }
+            }
+
+            return score;
+        }
+
+        function evaluatePosition(perspectiveColor) {
             if (game.in_checkmate()) {
-                return game.turn() === aiColor ? -99999 : 99999;
+                return game.turn() === perspectiveColor ? -99999 : 99999;
             }
             if (game.in_draw() || game.in_stalemate() || game.in_threefold_repetition()) {
                 return 0;
             }
 
             const board = game.board();
-            let totalMaterialWithoutKings = 0;
+            let nonPawnMajorMinorMaterial = 0;
 
             for (let r = 0; r < 8; r++) {
                 for (let c = 0; c < 8; c++) {
                     const p = board[r][c];
                     if (p && p.type !== 'k' && p.type !== 'p') {
-                        totalMaterialWithoutKings += PIECE_VALUES[p.type];
+                        nonPawnMajorMinorMaterial += PIECE_VALUES[p.type];
                     }
                 }
             }
-            const isEndgame = totalMaterialWithoutKings <= 2600;
+            const isEndgame = nonPawnMajorMinorMaterial <= 2600;
 
-            let whiteScore = 0;
-            let blackScore = 0;
-            let whiteBishops = 0;
-            let blackBishops = 0;
+            const whiteScore = evaluateSide(board, 'w', isEndgame);
+            const blackScore = evaluateSide(board, 'b', isEndgame);
+            const diff = whiteScore - blackScore;
+            return perspectiveColor === 'w' ? diff : -diff;
+        }
 
-            for (let r = 0; r < 8; r++) {
-                for (let c = 0; c < 8; c++) {
-                    const piece = board[r][c];
-                    if (!piece) continue;
+        function quiescence(alpha, beta, perspectiveColor, qDepth = 0) {
+            searchNodes++;
+            if ((searchNodes & 255) === 0 && performance.now() > searchDeadline) {
+                searchAborted = true;
+            }
 
-                    const isWhite = piece.color === 'w';
-                    const tableRow = isWhite ? r : 7 - r;
-                    let posBonus = 0;
+            const turnColor = game.turn();
+            const standPatRaw = evaluatePosition(perspectiveColor);
+            const standPat = turnColor === perspectiveColor ? standPatRaw : -standPatRaw;
 
-                    switch (piece.type) {
-                        case 'p': posBonus = PST_PAWN[tableRow][c]; break;
-                        case 'n': posBonus = PST_KNIGHT[tableRow][c]; break;
-                        case 'b':
-                            posBonus = PST_BISHOP[tableRow][c];
-                            if (isWhite) whiteBishops++; else blackBishops++;
-                            break;
-                        case 'r': posBonus = PST_ROOK[tableRow][c]; break;
-                        case 'q': posBonus = PST_QUEEN[tableRow][c]; break;
-                        case 'k':
-                            posBonus = isEndgame ? PST_KING_END[tableRow][c] : PST_KING_MID[tableRow][c];
-                            break;
+            if (qDepth >= 4 || searchAborted) return standPat;
+
+            if (standPat >= beta) return beta;
+            if (standPat > alpha) alpha = standPat;
+
+            const tacticalMoves = orderMoves(
+                game.moves({ verbose: true }).filter(m => m.captured || m.promotion),
+                6 + qDepth
+            );
+
+            for (let i = 0; i < tacticalMoves.length; i++) {
+                game.move(tacticalMoves[i]);
+                const score = -quiescence(-beta, -alpha, perspectiveColor, qDepth + 1);
+                game.undo();
+
+                if (searchAborted) break;
+                if (score >= beta) return beta;
+                if (score > alpha) alpha = score;
+            }
+
+            return alpha;
+        }
+
+        function negamax(depth, alpha, beta, perspectiveColor, useQuiescence, useNullMove, ply) {
+            searchNodes++;
+            if ((searchNodes & 255) === 0 && performance.now() > searchDeadline) {
+                searchAborted = true;
+            }
+
+            if (game.game_over()) {
+                const raw = evaluatePosition(perspectiveColor);
+                const signed = game.turn() === perspectiveColor ? raw : -raw;
+                return signed > 50000 ? signed - ply : (signed < -50000 ? signed + ply : signed);
+            }
+
+            if (depth <= 0 || searchAborted) {
+                if (useQuiescence) {
+                    return quiescence(alpha, beta, perspectiveColor, 0);
+                }
+                const raw = evaluatePosition(perspectiveColor);
+                return game.turn() === perspectiveColor ? raw : -raw;
+            }
+
+            const fenKey = game.fen();
+            const ttEntry = transpositionTable.get(fenKey);
+            let ttBestMove = null;
+
+            if (ttEntry && ttEntry.depth >= depth) {
+                ttBestMove = ttEntry.bestMove;
+                if (ttEntry.flag === 'EXACT') return ttEntry.score;
+                if (ttEntry.flag === 'LOWER' && ttEntry.score > alpha) alpha = ttEntry.score;
+                else if (ttEntry.flag === 'UPPER' && ttEntry.score < beta) beta = ttEntry.score;
+                if (alpha >= beta) return ttEntry.score;
+            }
+
+            // Null-move pruning in non-check, non-endgame positions
+            if (useNullMove && depth >= 3 && !game.in_check()) {
+                const parts = fenKey.split(' ');
+                if (parts.length >= 4) {
+                    const nullFenParts = [...parts];
+                    nullFenParts[1] = parts[1] === 'w' ? 'b' : 'w';
+                    nullFenParts[3] = '-';
+                    const nullGame = new Chess(nullFenParts.join(' '));
+                    if (nullGame && nullGame.moves().length > 0) {
+                        const prevGame = game;
+                        game = nullGame;
+                        const nullScore = -negamax(depth - 3, -beta, -beta + 1, perspectiveColor, useQuiescence, false, ply + 1);
+                        game = prevGame;
+                        if (!searchAborted && nullScore >= beta) {
+                            return beta;
+                        }
                     }
-
-                    const pieceTotal = PIECE_VALUES[piece.type] + posBonus;
-                    if (isWhite) whiteScore += pieceTotal;
-                    else blackScore += pieceTotal;
                 }
             }
 
-            if (whiteBishops >= 2) whiteScore += 35;
-            if (blackBishops >= 2) blackScore += 35;
+            const moves = orderMoves(game.moves({ verbose: true }), ply, ttBestMove);
+            let bestScore = -Infinity;
+            let bestMove = moves[0];
+            let flag = 'UPPER';
+            const origAlpha = alpha;
 
-            const netEval = whiteScore - blackScore;
-            return aiColor === 'w' ? netEval : -netEval;
-        }
+            for (let i = 0; i < moves.length; i++) {
+                const move = moves[i];
+                game.move(move);
+                const score = -negamax(depth - 1, -beta, -alpha, perspectiveColor, useQuiescence, useNullMove, ply + 1);
+                game.undo();
 
-        function quiescence(alpha, beta, isMaximizing, aiColor, qDepth = 0) {
-            const standPat = evaluateBoard(aiColor);
-            if (qDepth >= 4) return standPat;
+                if (searchAborted) break;
 
-            if (isMaximizing) {
-                if (standPat >= beta) return beta;
-                if (standPat > alpha) alpha = standPat;
-
-                const tacticalMoves = orderMoves(
-                    game.moves({ verbose: true }).filter(m => m.captured || m.promotion)
-                );
-
-                for (let move of tacticalMoves) {
-                    game.move(move);
-                    const score = quiescence(alpha, beta, false, aiColor, qDepth + 1);
-                    game.undo();
-
-                    if (score >= beta) return beta;
-                    if (score > alpha) alpha = score;
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = move;
                 }
-                return alpha;
-            } else {
-                if (standPat <= alpha) return alpha;
-                if (standPat < beta) beta = standPat;
-
-                const tacticalMoves = orderMoves(
-                    game.moves({ verbose: true }).filter(m => m.captured || m.promotion)
-                );
-
-                for (let move of tacticalMoves) {
-                    game.move(move);
-                    const score = quiescence(alpha, beta, true, aiColor, qDepth + 1);
-                    game.undo();
-
-                    if (score <= alpha) return alpha;
-                    if (score < beta) beta = score;
+                if (score > alpha) {
+                    alpha = score;
+                    flag = 'EXACT';
                 }
-                return beta;
-            }
-        }
-
-        function minimax(depth, alpha, beta, isMaximizing, aiColor, useQuiescence) {
-            if (depth === 0 || game.game_over()) {
-                if (useQuiescence && !game.game_over()) {
-                    return quiescence(alpha, beta, isMaximizing, aiColor);
+                if (alpha >= beta) {
+                    flag = 'LOWER';
+                    if (!move.captured && ply < killerMoves.length) {
+                        if (!isSameMove(killerMoves[ply][0], move)) {
+                            killerMoves[ply][1] = killerMoves[ply][0];
+                            killerMoves[ply][0] = move;
+                        }
+                    }
+                    break;
                 }
-                return evaluateBoard(aiColor);
             }
 
-            const moves = orderMoves(game.moves({ verbose: true }));
-
-            if (isMaximizing) {
-                let maxEval = -Infinity;
-                for (let move of moves) {
-                    game.move(move);
-                    const evaluation = minimax(depth - 1, alpha, beta, false, aiColor, useQuiescence);
-                    game.undo();
-                    maxEval = Math.max(maxEval, evaluation);
-                    alpha = Math.max(alpha, evaluation);
-                    if (beta <= alpha) break;
+            if (!searchAborted && bestMove) {
+                if (transpositionTable.size > 40000) {
+                    transpositionTable.clear();
                 }
-                return maxEval;
-            } else {
-                let minEval = Infinity;
-                for (let move of moves) {
-                    game.move(move);
-                    const evaluation = minimax(depth - 1, alpha, beta, true, aiColor, useQuiescence);
-                    game.undo();
-                    minEval = Math.min(minEval, evaluation);
-                    beta = Math.min(beta, evaluation);
-                    if (beta <= alpha) break;
-                }
-                return minEval;
+                transpositionTable.set(fenKey, {
+                    depth,
+                    score: bestScore,
+                    flag,
+                    bestMove
+                });
             }
+
+            return bestScore;
         }
 
         function updateUI() {
             const activeBoardGame = isReplayMode ? buildReplayInstance(replayIndex) : game;
             const turnDot = document.getElementById('turn-dot');
             const statusText = document.getElementById('status-text');
+            const sourceBadge = document.getElementById('ai-source-badge');
             const isWhiteTurn = activeBoardGame.turn() === 'w';
 
             turnDot.className = `w-3 h-3 rounded-full inline-block shadow ${isWhiteTurn ? 'bg-slate-100' : 'bg-slate-900 border border-slate-600'}`;
@@ -1300,6 +1589,15 @@
                 statusText.innerText = `${isWhiteTurn ? "White" : "Black"} in Check!`;
             } else {
                 statusText.innerText = `${isWhiteTurn ? "White" : "Black"}'s Turn`;
+            }
+
+            if (sourceBadge) {
+                if (config.mode === 'ai' && lastAiSourceNote) {
+                    sourceBadge.textContent = lastAiSourceNote;
+                    sourceBadge.classList.remove('hidden');
+                } else {
+                    sourceBadge.classList.add('hidden');
+                }
             }
 
             const totalMoves = game.history().length;
@@ -1457,6 +1755,7 @@
             isReplayMode = false;
             replayIndex = 0;
             pendingPromotion = null;
+            lastAiSourceNote = '';
 
             document.getElementById('game-over-modal').classList.add('hidden');
             document.getElementById('promotion-modal').classList.add('hidden');
